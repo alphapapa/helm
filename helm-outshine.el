@@ -72,7 +72,7 @@
   "Return Outshine heading candidates in FILENAME.
 FILENAME may be a path or a buffer."
   (with-current-buffer (pcase filename
-                         ((pred bufferp) filename)
+                         ((pred bufferp) (buffer-name filename))
                          ((pred stringp) (find-file-noselect filename)))
     (let* ((heading-regexp (or regexp
                                (concat "^\\("
