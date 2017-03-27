@@ -68,19 +68,20 @@
     :candidates (apply #'append (mapcar 'helm-outshine--get-candidates-in-file filenames))
     :action '(("Go to heading" . helm-outshine--goto-marker))))
 
-(defun helm-outshine--get-candidates-in-file (filename)
+(defun helm-outshine--get-candidates-in-file (filename &optional regexp)
   "Return Outshine heading candidates in FILENAME.
 FILENAME may be a path or a buffer."
   (with-current-buffer (pcase filename
                          ((pred bufferp) filename)
                          ((pred stringp) (find-file-noselect filename)))
-    (let* ((heading-regexp (concat "^\\("
-                                   (mapconcat (lambda (s)
-                                                (s-trim (car s)))
-                                              outline-promotion-headings
-                                              "\\|")
-                                   "\\)"
-                                   "\s+\\(.*\\)$"))
+    (let* ((heading-regexp (or regexp
+                               (concat "^\\("
+                                       (mapconcat (lambda (s)
+                                                    (s-trim (car s)))
+                                                  outline-promotion-headings
+                                                  "\\|")
+                                       "\\)"
+                                       "\s+\\(.*\\)$")))
            (match-fn (if helm-outshine-fontify
                          #'match-string
                        #'match-string-no-properties))
@@ -98,9 +99,12 @@ FILENAME may be a path or a buffer."
                                     beg end 'fontified t)))
                    do (jit-lock-fontify-now beg end)
                    for level = (length (match-string-no-properties 1))
-                   for heading = (concat (match-string 1) " " (funcall match-fn 2))
-                   if (and (>= level helm-org-headings-min-depth)
-                           (<= level helm-org-headings-max-depth))
+                   for heading = (if regexp
+                                     (funcall match-fn 0)
+                                   (concat (match-string 1) " " (funcall match-fn 2)))
+                   if (or regexp
+                          (and (>= level helm-org-headings-min-depth)
+                               (<= level helm-org-headings-max-depth)))
                    collect `(,heading . ,(point-marker))))))))
 
 (defun helm-outshine--in-buffer-preselect ()
