@@ -5438,47 +5438,47 @@ If ALL-SOURCES is non-nil, mark candidates in all sources."
         (cl-letf (((symbol-function 'message) #'ignore))
           (helm-follow-mode -1)
           (unwind-protect
-               (if nomark
-                   (message "Marking not allowed in this source")
-                   (save-excursion
-                     (if all-sources
+              (if nomark
+                  (message "Marking not allowed in this source")
+                (save-excursion
+                  (if all-sources
                       (goto-char (point-min))
                     (goto-char (helm-get-previous-header-pos))
                     (forward-line 1))
-                     (let* ((next-head (helm-get-next-header-pos))
-                            (end       (and next-head
-                                            (save-excursion
-                                              (goto-char next-head)
-                                              (forward-line -1)
-                                              (point))))
-                            (maxpoint  (if all-sources
+                  (let* ((next-head (helm-get-next-header-pos))
+                         (end       (and next-head
+                                         (save-excursion
+                                           (goto-char next-head)
+                                           (forward-line -1)
+                                           (point))))
+                         (maxpoint  (if all-sources
                                         (point-max)
                                       (or end (point-max)))))
-                       (while (< (point) maxpoint)
-                         (helm-mark-current-line)
-                         (let* ((prefix (get-text-property (point-at-bol) 'display))
-                                (cand   (helm-get-selection nil nil src))
-                                (bn     (and filecomp-p (helm-basename cand))))
-                           ;; Don't mark possibles directories ending with . or ..
-                           ;; autosave files/links and non--existent file.
-                           (unless
-                               (or (helm-this-visible-mark)
-                                   (string= prefix "[?]")   ; doesn't match
-                                   (and filecomp-p
-                                        (or (string-match-p ; autosave or dot files
-                                             "^[.]?#.*#?$\\|[^#]*[.]\\{1,2\\}$" bn)
-                                            ;; We need to test here when not using
-                                            ;; a transformer that put a prefix tag
-                                            ;; before candidate.
-                                            ;; (i.e no [?] prefix on tramp).
-                                            (and remote-p (not (file-exists-p cand))))))
-                             (helm-make-visible-mark src cand)))
-                         (when (helm-pos-multiline-p)
-                           (goto-char
-                            (or (helm-get-next-candidate-separator-pos)
-                                (point-max))))
-                         (forward-line 1))))
-                   (helm-mark-current-line))
+                    (while (< (point) maxpoint)
+                      (helm-mark-current-line)
+                      (let* ((prefix (get-text-property (point-at-bol) 'display))
+                             (cand   (helm-get-selection nil nil src))
+                             (bn     (and filecomp-p (helm-basename cand))))
+                        ;; Don't mark possibles directories ending with . or ..
+                        ;; autosave files/links and non--existent file.
+                        (unless
+                            (or (helm-this-visible-mark)
+                                (string= prefix "[?]")   ; doesn't match
+                                (and filecomp-p
+                                     (or (string-match-p ; autosave or dot files
+                                          "^[.]?#.*#?$\\|[^#]*[.]\\{1,2\\}$" bn)
+                                         ;; We need to test here when not using
+                                         ;; a transformer that put a prefix tag
+                                         ;; before candidate.
+                                         ;; (i.e no [?] prefix on tramp).
+                                         (and remote-p (not (file-exists-p cand))))))
+                          (helm-make-visible-mark src cand)))
+                      (when (helm-pos-multiline-p)
+                        (goto-char
+                         (or (helm-get-next-candidate-separator-pos)
+                             (point-max))))
+                      (forward-line 1))))
+                (helm-mark-current-line))
             (helm-follow-mode follow)))))))
 (put 'helm-mark-all 'helm-only t)
 
