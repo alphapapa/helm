@@ -5422,8 +5422,9 @@ Meaning of prefix ARG is the same as in `reposition-window'."
         (cl-loop for i in helm--file-completion-sources
                  thereis (string= cur-source i)))))
 
-(defun helm-mark-all ()
-  "Mark all visible unmarked candidates in current source."
+(defun helm-mark-all (&optional &key all-sources)
+  "Mark all visible unmarked candidates in current source.
+If ALL-SOURCES is non-nil, mark candidates in all sources."
   (interactive)
   (with-helm-alive-p
     (with-helm-window
@@ -5440,15 +5441,19 @@ Meaning of prefix ARG is the same as in `reposition-window'."
                (if nomark
                    (message "Marking not allowed in this source")
                    (save-excursion
-                     (goto-char (helm-get-previous-header-pos))
-                     (forward-line 1)
+                     (if all-sources
+                      (goto-char (point-min))
+                    (goto-char (helm-get-previous-header-pos))
+                    (forward-line 1))
                      (let* ((next-head (helm-get-next-header-pos))
                             (end       (and next-head
                                             (save-excursion
                                               (goto-char next-head)
                                               (forward-line -1)
                                               (point))))
-                            (maxpoint  (or end (point-max))))
+                            (maxpoint  (if all-sources
+                                        (point-max)
+                                      (or end (point-max)))))
                        (while (< (point) maxpoint)
                          (helm-mark-current-line)
                          (let* ((prefix (get-text-property (point-at-bol) 'display))
