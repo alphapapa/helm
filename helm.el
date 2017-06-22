@@ -3389,7 +3389,13 @@ Highlight elements in CANDIDATE matching `helm-pattern' according
 to the matching method in use."
   (if (string= helm-pattern "")
       ;; Empty pattern, do nothing.
-      candidate
+      (cl-typecase candidate
+        (cons (cons (propertize (car candidate) 'read-only nil)
+                    (cdr candidate)))
+        (list (list (propertize (car candidate) 'read-only nil)
+                    (cdr candidate)))
+        (string (propertize candidate 'read-only nil))
+        (otherwise candidate))
     ;; Else start highlighting.
     (let* ((pair    (and (consp candidate) candidate))
            (display (helm-stringify (if pair (car pair) candidate)))
